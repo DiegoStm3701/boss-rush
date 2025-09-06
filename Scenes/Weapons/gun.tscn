@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2e8anhkq06u3"]
+
+[ext_resource type="Texture2D" uid="uid://c3x6uvr00jvbw" path="res://Sprites/Weapons/Guns/AssaultRifles/5AssaultRifle05.png" id="1_c76ja"]
+[ext_resource type="Script" uid="uid://gye24r4sva6f" path="res://Scripts/gun.gd" id="2_ut0fn"]
+
+[node name="Gun" type="Sprite2D"]
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("1_c76ja")
+script = ExtResource("2_ut0fn")
+
+[node name="gun_tip" type="Node2D" parent="."]
+position = Vector2(17.1429, 0)
