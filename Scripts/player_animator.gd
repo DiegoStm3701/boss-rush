@@ -35,9 +35,9 @@ func _choose_animation() -> void:
 		play("walk")
 	elif player_controller.sprinting:
 		play("sprint")
-	elif player_controller.crouching:
-		play("crouch")
 	elif player_controller.crawling:
 		play("crawl")
+	elif player_controller.crouching:
+		play("crouch")
 	else:
 		play("idle")

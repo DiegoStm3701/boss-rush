@@ -7,20 +7,24 @@ class_name PlayerController extends CharacterBody2D
 @export var crawl_multiplier = 0.2
 
 var direction = 0
-
+var global_delta = 0
 # Ground States
 var sprinting = false
-var idling = true
+var idling = false
 var walking = false
 var crouching = false
 var crawling = false
+var grounded =  false
 
 # Air States
 var jumping = false
 var double_jumping = false
 var airborne = false
 var falling = false
+var clinging = false
 var double_jumps_left = 0
+
+# Air Movement
 @export var air_jumps = 1
 @export var air_acceleration = 0.2
 
@@ -33,18 +37,9 @@ func _ready() -> void:
 	pass
 
 func _physics_process(delta: float) -> void:
-	# Add the gravity.
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-		if not airborne:
-			airborne = true
-			double_jumps_left = air_jumps
-		
-		falling = false
-		if velocity.y > 0:
-			falling = true
-	else:
-		airborne = false
+	global_delta = delta
+	direction = Input.get_axis("move_left", "move_right")
+	setup_initial_states()
 	
 	if not airborne:
 		handle_ground_movement()
@@ -55,18 +50,66 @@ func _physics_process(delta: float) -> void:
 		
 	move_and_slide()
 
-func handle_jump() -> void:
+func setup_initial_states() -> void:
+	
+	# Ground States
+	sprinting = false
+	idling = false
+	walking = false
+	crouching = false
+	crawling = false
+	
 	if is_on_floor():
+		airborne = false
+		setup_ground_states()
+	else:
+		setup_air_states()
+		grounded = false
+	pass 
+
+func setup_ground_states() -> void:
+	grounded = true
+	if Input.is_action_pressed("crouch"):
+		if direction:
+			crawling = true
+		else:
+			crouching = true
+		return
+	if not direction:
+		idling = true
+		return
+	else:
+		if Input.is_action_pressed("sprint"):
+			sprinting = true
+		else:
+			walking = true
+		return
+
+func setup_air_states() -> void:
+	velocity += get_gravity() * global_delta
+	
+	# setup initial airborne and give double jumps
+	if not airborne:
+		airborne = true
+		double_jumps_left = air_jumps
+	
+	# Check if player is falling
+	falling = false
+	if velocity.y > 0:
+		falling = true
+	pass
+
+func handle_jump() -> void:
+	if not airborne:
 		velocity.y = -jump_power
 		jumping = true
 	elif is_on_wall_only():
 		velocity.y = -wall_jump_power
 		if Input.is_action_pressed("move_right"):
 			velocity.x = -wall_jump_pushback
-			print("velocity after airjump: ", velocity.x)
 		elif Input.is_action_pressed("move_left"):
 			velocity.x = wall_jump_pushback
-			print("velocity after airjump: ", velocity.x)
+		print("velocity x after airjump: ", velocity.x)
 			
 			
 	elif double_jumps_left > 0:
@@ -78,36 +121,20 @@ func handle_jump() -> void:
 		
 	
 func handle_ground_movement() -> void:
-	direction = Input.get_axis("move_left", "move_right")
-	if not direction:
-		if Input.is_action_pressed("crouch"):
-			crouching = true
-		else:
-			crouching = false
-			idling = true
-		walking = false
-		sprinting = false
+	
+	if idling or crouching:
 		velocity.x = 0
 		return
 		
-	idling = false
-
-	velocity.x = direction * speed
-	if Input.is_action_pressed("sprint"):
-		sprinting = true
-		walking = false
-		velocity.x = velocity.x * sprint_multiplier
-	elif crouching:
-		crawling = true
-		velocity.x = velocity.x * crawl_multiplier
-	else:
-		sprinting = false
-		crawling = false
-		walking = true
+	if sprinting:
+		velocity.x = direction * speed * sprint_multiplier
+	elif crawling:
+		velocity.x = direction * speed * crawl_multiplier
+	elif walking:
+		velocity.x = direction * speed
+	return
 	
 func handle_air_movement() -> void:
-	#print("current velocity: ", velocity.x)
-	direction = Input.get_axis("move_left", "move_right")
 	if not direction:
 		#Player mantains direction
 		return

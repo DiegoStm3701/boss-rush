@@ -303,7 +303,7 @@ jump_power = 400.0
 sprint_multiplier = 2.0
 air_acceleration = 0.5
 wall_jump_power = 300
-wall_jump_pushback = 200
+wall_jump_pushback = 500
 
 [node name="Camera2D" type="Camera2D" parent="."]
 offset = Vector2(0, -80)
